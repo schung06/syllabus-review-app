@@ -168,7 +168,7 @@ export default function Dashboard({ reviewer }) {
                                 onClick={handleUploadClick}
                                 disabled={uploading}
                             >
-                                <Upload size={16} /> Upload PDF
+                                <Upload size={16} /> Upload PDF(Not Recommended)
                             </button>
                             <span style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600 }}>OR</span>
                             <div className="flex gap-sm">
