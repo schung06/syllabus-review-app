@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Save, FileText, CheckCircle } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export default function Review({ reviewer }) {
     const { assignmentId } = useParams();
     const navigate = useNavigate();
@@ -30,7 +32,7 @@ export default function Review({ reviewer }) {
     });
 
     useEffect(() => {
-        fetch(`http://localhost:3001/api/assignments/${reviewer.id}`)
+        fetch(`${API_BASE}/api/assignments/${reviewer.id}`)
             .then(res => res.json())
             .then(data => {
                 const item = data.find(a => a.assignmentId.toString() === assignmentId);
@@ -51,7 +53,7 @@ export default function Review({ reviewer }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         setSubmitting(true);
-        fetch(`http://localhost:3001/api/reviews/${assignmentId}`, {
+        fetch(`${API_BASE}/api/reviews/${assignmentId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(scores)

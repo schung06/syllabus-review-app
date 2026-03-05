@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { User, ChevronRight } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_BASE || ''; // will be empty in production
+
 export default function Login({ onLogin }) {
     const [reviewers, setReviewers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:3001/api/reviewers')
+        fetch(`${API_BASE}/api/reviewers`)
             .then(res => res.json())
             .then(data => {
                 setReviewers(data);

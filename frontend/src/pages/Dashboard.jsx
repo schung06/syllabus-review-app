@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, CheckCircle, Clock, BarChart } from 'lucide-react';
+import { Upload, FileText, CheckCircle, Clock, BarChart, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const API_BASE = import.meta.env.VITE_API_BASE || ''; // blank on vercel
 
 export default function Dashboard({ reviewer }) {
     const [progress, setProgress] = groupProgressState();
@@ -15,7 +17,7 @@ export default function Dashboard({ reviewer }) {
 
     useEffect(() => {
         if (reviewer.role === 'admin') {
-            fetch('http://localhost:3001/api/reviewers')
+            fetch(`${API_BASE}/api/reviewers`)
                 .then(res => res.json())
                 .then(data => setReviewersList(data.filter(r => r.role === 'reviewer')))
                 .catch(console.error);
@@ -27,18 +29,18 @@ export default function Dashboard({ reviewer }) {
     }
 
     const fetchDashboardData = () => {
-        fetch('http://localhost:3001/api/progress')
+        fetch(`${API_BASE}/api/progress`)
             .then(res => res.json())
             .then(data => setProgress(data))
             .catch(console.error);
 
         if (reviewer.role === 'admin') {
-            fetch('http://localhost:3001/api/admin/syllabi')
+            fetch(`${API_BASE}/api/admin/syllabi`)
                 .then(res => res.json())
                 .then(data => setAdminSyllabi(data))
                 .catch(console.error);
         } else {
-            fetch(`http://localhost:3001/api/assignments/${reviewer.id}`)
+            fetch(`${API_BASE}/api/assignments/${reviewer.id}`)
                 .then(res => res.json())
                 .then(data => setAssignments(data))
                 .catch(console.error);
@@ -64,7 +66,7 @@ export default function Dashboard({ reviewer }) {
         formData.append('reviewerId', assigneeId);
 
         setUploading(true);
-        fetch('http://localhost:3001/api/upload', {
+        fetch(`${API_BASE}/api/upload`, {
             method: 'POST',
             body: formData,
         })
@@ -82,7 +84,7 @@ export default function Dashboard({ reviewer }) {
     const handleLinkSubmit = () => {
         if (!linkUrl || !linkTitle) return;
         setUploading(true);
-        fetch('http://localhost:3001/api/upload-link', {
+        fetch(`${API_BASE}/api/upload-link`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ filename: linkTitle, link: linkUrl, reviewerId: assigneeId })
@@ -99,7 +101,7 @@ export default function Dashboard({ reviewer }) {
 
     const handleDeleteAssignment = (assignmentId) => {
         if (!window.confirm('Are you sure you want to delete this assignment?')) return;
-        fetch(`http://localhost:3001/api/assignments/${assignmentId}`, { method: 'DELETE' })
+        fetch(`${API_BASE}/api/assignments/${assignmentId}`, { method: 'DELETE' })
             .then(res => res.json())
             .then(() => fetchDashboardData())
             .catch(console.error);
@@ -107,14 +109,14 @@ export default function Dashboard({ reviewer }) {
 
     const handleDeleteSyllabus = (syllabusId) => {
         if (!window.confirm('Are you sure you want to delete this syllabus and ALL its assignments?')) return;
-        fetch(`http://localhost:3001/api/syllabi/${syllabusId}`, { method: 'DELETE' })
+        fetch(`${API_BASE}/api/syllabi/${syllabusId}`, { method: 'DELETE' })
             .then(res => res.json())
             .then(() => fetchDashboardData())
             .catch(console.error);
     };
 
     const handleUpdateAssignments = (syllabusId, reviewerIds) => {
-        fetch(`http://localhost:3001/api/admin/syllabi/${syllabusId}/assign`, {
+        fetch(`${API_BASE}/api/admin/syllabi/${syllabusId}/assign`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reviewerIds })
@@ -206,7 +208,7 @@ export default function Dashboard({ reviewer }) {
                     </div>
                     <div>
                         <a
-                            href="http://localhost:3001/api/admin/export"
+                            href={`${API_BASE}/api/admin/export`}
                             className="btn btn-primary"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -384,7 +386,3 @@ export default function Dashboard({ reviewer }) {
     );
 }
 
-// Quick component for User icon since I forgot to import it above.
-function User(props) {
-    return <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-}
