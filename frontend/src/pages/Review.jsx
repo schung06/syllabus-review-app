@@ -245,31 +245,43 @@ export default function Review({ reviewer }) {
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--surface-hover)' }}>
                         <h3 style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Syllabus Document</h3>
                     </div>
-                    {assignment.filepath.startsWith('http') ? (
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', textAlign: 'center', background: 'var(--surface-color)' }}>
-                            <FileText size={64} style={{ opacity: 0.5, marginBottom: '24px' }} color="var(--primary-color)" />
-                            <h4 style={{ fontSize: '20px', marginBottom: '16px' }}>External Syllabus Document</h4>
-                            <p style={{ color: 'var(--text-muted)', marginBottom: '32px', maxWidth: '400px' }}>
-                                This syllabus is hosted externally (e.g., Google Drive).
-                                Click the button below to open it in a new tab alongside this grading interface.
-                            </p>
-                            <a
-                                href={assignment.filepath}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-primary"
-                                style={{ fontSize: '16px', padding: '12px 24px' }}
-                            >
-                                Open Link in New Tab
-                            </a>
-                        </div>
-                    ) : (
-                        <iframe
-                            src={`${API_BASE}${assignment.filepath}`}
-                            style={{ width: '100%', height: '100%', border: 'none', background: '#fff' }}
-                            title="Syllabus PDF"
-                        />
-                    )}
+                    {(() => {
+                        const fp = assignment.filepath;
+                        let embedSrc;
+
+                        if (!fp.startsWith('http')) {
+                            // Local/API-served file
+                            embedSrc = `${API_BASE}${fp}`;
+                        } else if (fp.includes('res.cloudinary.com')) {
+                            // Cloudinary — embeds directly
+                            embedSrc = fp;
+                        } else if (fp.includes('drive.google.com')) {
+                            // Convert Google Drive share link to embed URL
+                            const fileIdMatch = fp.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                            embedSrc = fileIdMatch
+                                ? `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`
+                                : `https://docs.google.com/viewer?url=${encodeURIComponent(fp)}&embedded=true`;
+                        } else {
+                            // Any other URL — use Google Docs Viewer to embed
+                            embedSrc = `https://docs.google.com/viewer?url=${encodeURIComponent(fp)}&embedded=true`;
+                        }
+
+                        return (
+                            <>
+                                <div style={{ padding: '6px 12px', borderBottom: '1px solid var(--border-color)', background: 'var(--surface-hover)', display: 'flex', justifyContent: 'flex-end' }}>
+                                    <a href={fp} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>
+                                        ↗ Open in new tab
+                                    </a>
+                                </div>
+                                <iframe
+                                    src={embedSrc}
+                                    style={{ width: '100%', flex: 1, border: 'none', background: '#fff' }}
+                                    title="Syllabus PDF"
+                                    allow="fullscreen"
+                                />
+                            </>
+                        );
+                    })()}
                 </div>
 
                 {/* Right Side: Rubric */}
