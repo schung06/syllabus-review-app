@@ -1,31 +1,34 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Cloudinary configuration (credentials from environment variables)
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
-
-// Multer setup for PDF uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9.]/g, '_'));
-    }
+// Multer setup: upload PDFs directly to Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'syllabus-uploads',
+        resource_type: 'raw',   // required for PDFs (non-image files)
+        allowed_formats: ['pdf'],
+    },
 });
 const upload = multer({ storage });
 
@@ -94,7 +97,8 @@ app.get('/api/reviewers', (req, res) => {
 app.post('/api/upload', upload.single('syllabus'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No PDF uploaded' });
 
-    const filepath = `/uploads/${req.file.filename}`;
+    // Cloudinary returns the full public URL in req.file.path
+    const filepath = req.file.path;
     const filename = req.file.originalname;
     const assignedReviewerId = req.body.reviewerId; // 'auto' or a specific ID
 

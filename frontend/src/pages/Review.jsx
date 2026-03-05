@@ -265,7 +265,7 @@ export default function Review({ reviewer }) {
                         </div>
                     ) : (
                         <iframe
-                            src={`http://localhost:3001${assignment.filepath}`}
+                            src={`${API_BASE}${assignment.filepath}`}
                             style={{ width: '100%', height: '100%', border: 'none', background: '#fff' }}
                             title="Syllabus PDF"
                         />
@@ -277,8 +277,6 @@ export default function Review({ reviewer }) {
                     <h3 style={{ fontSize: '18px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
                         Evaluation Rubric
                     </h3>
-                    <pre style={{ fontSize: '10px' }}>DEBUG_SCORES: {JSON.stringify(scores, null, 2)}</pre>
-                    <pre style={{ fontSize: '10px' }}>DEBUG_ASSIGNMENT_SCORES: {assignment && assignment.scores}</pre>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-lg" style={{ flex: 1 }}>
 
