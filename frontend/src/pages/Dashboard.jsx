@@ -156,21 +156,6 @@ export default function Dashboard({ reviewer }) {
                         </select>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid var(--border-color)', paddingLeft: '16px', flexWrap: 'wrap' }}>
-                            <input
-                                type="file"
-                                accept="application/pdf"
-                                ref={fileInputRef}
-                                style={{ display: 'none' }}
-                                onChange={handleFileChange}
-                            />
-                            <button
-                                className="btn btn-outline"
-                                onClick={handleUploadClick}
-                                disabled={uploading}
-                            >
-                                <Upload size={16} /> Upload PDF(Not Recommended)
-                            </button>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600 }}>OR</span>
                             <div className="flex gap-sm">
                                 <input
                                     className="input-field"
