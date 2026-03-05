@@ -14,7 +14,7 @@ function App() {
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
-    const sitePassword = import.meta.env.VITE_SITE_PASSWORD || 'SPECS';
+    const sitePassword = import.meta.env.VITE_SITE_PASSWORD;
     if (password === sitePassword) {
       setSiteAuthenticated(true);
       sessionStorage.setItem('site_auth', 'true');
