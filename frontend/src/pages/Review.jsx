@@ -11,6 +11,7 @@ export default function Review({ reviewer }) {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [validationError, setValidationError] = useState('');
 
     // Generic rubric state
     const [scores, setScores] = useState({
@@ -52,6 +53,20 @@ export default function Review({ reviewer }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Validate all rubric criteria are filled
+        const missing = rubricCriteria.filter(c => scores[c.key] === '');
+        if (missing.length > 0) {
+            setValidationError(
+                `Please fill out all rubric fields before submitting. Missing: ${missing.map(c => c.label).join(', ')}`
+            );
+            // Scroll to the first missing field
+            const firstMissingEl = document.getElementById(`rubric-${missing[0].key}`);
+            if (firstMissingEl) firstMissingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        setValidationError('');
         setSubmitting(true);
         fetch(`${API_BASE}/api/reviews/${assignmentId}`, {
             method: 'POST',
@@ -74,6 +89,8 @@ export default function Review({ reviewer }) {
             ...prev,
             [name]: value
         }));
+        // Clear validation error when user fills in a field
+        setValidationError('');
     };
 
     const isCompleted = assignment.status === 'completed';
@@ -295,28 +312,46 @@ export default function Review({ reviewer }) {
                         <div className="flex flex-col gap-md">
                             <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Select the appropriate option for each policy based on the syllabus.</p>
 
-                            {rubricCriteria.map(criterion => (
-                                <div key={criterion.key} className="input-group" style={{ background: 'var(--surface-hover)', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
-                                    <label className="input-label" style={{ marginBottom: '4px', fontSize: '16px', fontWeight: 'bold' }}>{criterion.label}</label>
-                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>{criterion.description}</p>
-                                    <div className="flex flex-col gap-sm">
-                                        {criterion.options.map(option => (
-                                            <label key={option.value} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: formDisabled ? 'default' : 'pointer' }}>
-                                                <input
-                                                    type="radio"
-                                                    name={criterion.key}
-                                                    value={option.value}
-                                                    checked={scores[criterion.key] === option.value}
-                                                    onChange={handleChange}
-                                                    disabled={formDisabled}
-                                                    style={{ marginTop: '4px' }}
-                                                />
-                                                <span style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: '1.4' }}>{option.text}</span>
-                                            </label>
-                                        ))}
+                            {rubricCriteria.map(criterion => {
+                                const isMissing = validationError && scores[criterion.key] === '';
+                                return (
+                                    <div
+                                        key={criterion.key}
+                                        id={`rubric-${criterion.key}`}
+                                        className="input-group"
+                                        style={{
+                                            background: 'var(--surface-hover)',
+                                            padding: '16px',
+                                            borderRadius: '8px',
+                                            marginBottom: '16px',
+                                            border: isMissing ? '2px solid #ef4444' : '2px solid transparent',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                    >
+                                        <label className="input-label" style={{ marginBottom: '4px', fontSize: '16px', fontWeight: 'bold' }}>
+                                            {criterion.label}
+                                            {isMissing && <span style={{ color: '#ef4444', marginLeft: '6px', fontSize: '13px' }}>* Required</span>}
+                                        </label>
+                                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>{criterion.description}</p>
+                                        <div className="flex flex-col gap-sm">
+                                            {criterion.options.map(option => (
+                                                <label key={option.value} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: formDisabled ? 'default' : 'pointer' }}>
+                                                    <input
+                                                        type="radio"
+                                                        name={criterion.key}
+                                                        value={option.value}
+                                                        checked={scores[criterion.key] === option.value}
+                                                        onChange={handleChange}
+                                                        disabled={formDisabled}
+                                                        style={{ marginTop: '4px' }}
+                                                    />
+                                                    <span style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: '1.4' }}>{option.text}</span>
+                                                </label>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         <div className="input-group">
@@ -332,6 +367,20 @@ export default function Review({ reviewer }) {
                                 style={{ resize: 'vertical' }}
                             />
                         </div>
+
+                        {validationError && (
+                            <div style={{
+                                padding: '12px 16px',
+                                background: '#fef2f2',
+                                border: '1px solid #fca5a5',
+                                borderRadius: '8px',
+                                color: '#dc2626',
+                                fontSize: '13px',
+                                lineHeight: '1.5'
+                            }}>
+                                ⚠️ {validationError}
+                            </div>
+                        )}
 
                         <div style={{ marginTop: 'auto', paddingTop: '24px', display: 'flex', gap: '12px' }}>
                             {isCompleted && !isEditing ? (
